@@ -148,4 +148,221 @@ ggplot(df, aes(x = height)) + geom_boxplot()
 ggplot(df, aes(sex,height)) + geom_boxplot()
 # violin plot
 ggplot(df, aes(sex,height)) + geom_violin()
+# box plot on violin plot
+ggplot(df, aes(sex,height)) +
+  geom_boxplot() +
+  geom_violin(alpha = .5) +
+  geom_jitter()
 
+# Density
+ggplot(df, aes(x = height)) + geom_density()
+ggplot(df, aes(x = height, fill = sex)) + geom_density()
+ggplot(df, aes(x = height, fill = sex)) +
+  geom_density(alpha = .25) + 
+  theme_bw() +
+  ggtitle("Heights of boys and girls") +
+  xlab("Height (cm)") + ylab("") +
+  theme(legend.position = "top")
+
+# Themes
+?theme
+
+
+## TODO bar chart on the number of f/m
+ggplot(df, aes(x = sex)) + geom_bar() +
+  theme_bw() +
+  ggtitle("Number of male and female") +
+  xlab("") + ylab("Frequency") +
+  theme(legend.position = "top")
+
+## TODO histogram of weight
+ggplot(df, aes(x = weight)) + geom_histogram() +
+  theme_bw() +
+  ggtitle("Histogram of weights") +
+  xlab("Weight") + ylab("") +
+  theme(legend.position = "top")
+
+## TODO histogram of weight split by sex
+# WE have to use the ~ for facet_wrap
+ggplot(df, aes(x = weight)) + geom_histogram() + facet_wrap(~sex)
+  
+
+## TODO bar chart on the number of f/m below and above 160cm
+# Subtitles need to be changed within the DataFrame
+# df$height_cat <- df$height < 160
+# Creating 3 categories
+df$height_cat <- cut(df$height, breaks = c(0, 160, Inf))
+df
+ggplot(df, aes(sex)) + geom_bar() + facet_wrap(~height_cat)
+
+#Stacked bar chart
+
+ggplot(df, aes(sex, fill = height_cat)) + geom_bar()
+# Filling it up a 100%
+ggplot(df, aes(sex, fill = height_cat)) + geom_bar(position = "fill")
+
+# Stacked
+ggplot(df, aes(sex, fill = height_cat)) + geom_bar(position = "dodge")
+
+
+# DATA MANIPULATION & TRANSFORMATION
+
+## TODO avg weight per gender
+mean(df$weight)
+?mean
+
+#Grouping by manually
+# we have to insert the comma to look at all the columns
+mean(df[df$sex == "f", "weight"])
+mean(df[df$sex == "m", "weight"])
+
+# Summary statistics
+# FUN = function
+# you can include multiple variables or columns on the right hand side
+?aggregate
+aggregate(weight ~ sex, FUN = mean, data = df)
+
+# tidyverse, dplyr
+?subset
+subset(df, sex == "f")
+
+## data.table
+
+install.packages("data.table")
+library(data.table)
+
+dt <- data.table(df)
+dt
+
+# dt and df are the same, except for the internal selfref which df has
+
+## dt[i]
+dt[1] # calls the first row
+dt[1:5] # calls the first 5 rows
+
+dt[sex == "f"] # we don't need the $ prefix, we can just call the column name
+dt[sex == "f"][1:5]
+dt[ageYear < 12]
+dt[ageYear == min(ageYear)]
+
+# Ordering by bmi
+dt[ageYear == min(ageYear)][order(bmi)]
+str(dt[ageYear == min(ageYear)][order(bmi)]) # This is a data table object
+
+## dt[i, j]
+dt[, mean(height)]
+dt[, summary(height)]
+dt[, hist(height)]
+
+dt[sex == "m", mean(height)]
+dt[sex == "f", mean(height)]
+
+# dt[i, j, by = ...] --> group by
+dt[, mean(height), by = sex]
+
+
+# V1 stands for variable 1
+# instead of providing mean(height)
+dt[, list(height = mean(height), weight = mean(weight)), by = sex]
+dt[, list(height = mean(height),
+          weight = mean(weight)
+          ),
+   by = list(gender = sex, height_cat)]
+
+
+## TODO new variable: elementary school = age < 14
+## compute the median weight for elementary VS non-elementary school: 14 < x < 18
+
+dt$elementary <- df$ageYear < 14
+dt$elementary <- cut(dt$ageYear, breaks = c(0, 14, 18))
+
+# :- walrus operator: 
+dt[, elementary := ageYear < 14]
+
+dt[ageYear  < 18, median(weight), by = elementary]
+
+# draw 5 random students from dt
+dt[1:5]
+dt[.N] #filtering for the last row
+
+# .N is the shorthand for the number of rows
+
+# sample pick random numbers (range, n to pick)
+?sample
+sample(1:10, 2)
+
+# Random number generator to the same seed
+set.seed(100)
+dt[sample(1:.N, 5)]
+
+# Runif
+runif(5)
+round(runif(5, min = 1, max = 237))
+
+dt[round(runif(5, min = 1, max = .N))]
+
+# fread is a replacement for read.csv
+
+?fread
+booking <- fread("http://bit.ly/CEU-R-hotels-2018-prices")
+booking
+
+## TODO count the number of bookings below 100 EUR
+
+booking$below_100 <- booking$price < 100
+sum(booking$below_100 == 'TRUE')
+
+# OR:
+
+booking[price < 100, .N]
+
+## TODO count the number of bookings below 100 EUR without an offer
+
+sum(booking$below_100 == 'TRUE' & booking$offer == 0)
+
+# OR:
+
+booking[offer == 0][price < 100, .N]
+booking[offer == 0 & price < 100, .N]
+
+## TODO avg price of bookings below 100 EUR
+
+booking[price < 100, mean(price)]
+
+## TODO avg price of bookings on weekdays
+
+booking[weekend == 0, mean(price)]
+
+## TODO avg price of bookings on weekdays
+
+booking[weekend == 1, mean(price)]
+
+# Or:
+
+booking[, mean(price), by = list(weekend, nnights)]
+
+## TODO include nnights, holiday and year in the aggregate variables
+# "." also refers to list
+
+booking[, mean(price), by = list(weekend, nnights, holiday)]
+booking[, mean(price), by = .(weekend, nnights, holiday)]
+
+## TODO compute the average price per number of stars
+
+feature <- fread("http://bit.ly/CEU-R-hotels-2018-features")
+feature
+
+# Merging the two data.tables
+
+## dt[i, j , by = ]
+# %in% can reference the other datasets values
+# ! will convert all the TRUEs to FALSEs and vice versa
+booking[!hotel_id %in% feature$hotel_id]
+feature[hotel_id == 2]
+
+## TODO compute the average price per number of stars
+dt <- merge(booking, feature, all = TRUE)
+dt[, mean(price), by = stars][order(stars)]
+
+# descending order
+dt[, mean(price), by = stars][order(stars, decreasing = TRUE)]
