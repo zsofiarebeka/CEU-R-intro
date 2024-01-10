@@ -24,6 +24,7 @@ cumsum(round(runif(100)) * 2 -1)
 
 h <- c(174, 170, 160)
 w <- c(90, 80, 70)
+
 min(w)
 max(w)
 range(w)
@@ -82,3 +83,8 @@ dim(df)
 
 plot(df)
 cor(df)
+
+## compute BMI: weight/height^2 in meters
+df$bmi <- df$weight / (df$height/100)^2
+df
+
