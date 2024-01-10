@@ -88,3 +88,64 @@ cor(df)
 df$bmi <- df$weight / (df$height/100)^2
 df
 
+# reading the .csv file
+df <- read.csv("http://bit.ly/CEU-R-heights")
+df
+
+# Computing BMI in the new df
+df$bmi <- (df$weightLb*0.4536) / (df$heightIn*0.0254)^2
+df
+
+# Even if we use weight or w, R will use partial matching if we use [] for columns
+# But it's better if we use $ and add the full name of the column
+
+df$weight <- df$weightLb * 0.45
+df$height <- df$heightIn * 2.54
+df$weightLb <- df$heightIn <- NULL
+df$bmi <- df$weight / (df$height/100) ^ 2
+df
+# plotting the fit df
+plot(df)
+
+install.packages("pairsD3")
+
+library(pairsD3)  #inline comment
+# double :: means calling the functions of the package
+pairsD3::pairsD3(df)
+
+
+install.packages("GGally")
+library(GGally)
+ggpairs(df)
+# This plotting is useful, but it's quite slow
+
+# Using ggplot2 in R
+library(ggplot2)
+ggplot(df, aes(x = height)) + geom_histogram()
+ggplot(df, aes(x = height, y = weight)) + geom_point()
+system.time(g <- ggplot(df, aes(x = height, y = weight, color = sex)) + geom_point())
+system.time(print(g))
+
+# Themes and Standard Errors
+# If we take the lm out --> creates a lowess
+g + theme_bw()
+g + geom_smooth(method = 'lm', se = TRUE)
+
+# We get a line for male, female and both
+ggplot(df, aes(x = height, y = weight)) +
+  geom_point(aes(color = sex)) +
+  geom_smooth(method = 'lm', se = FALSE, color = "black") +
+  geom_smooth(aes(color = sex), method = 'lm', se = FALSE)
+
+# Scale definitions
+g + scale_y_log10()
+# not possible to add secondary y axis
+
+
+# box plots
+ggplot(df, aes(x = height)) + geom_boxplot()
+# separating based on categories
+ggplot(df, aes(sex,height)) + geom_boxplot()
+# violin plot
+ggplot(df, aes(sex,height)) + geom_violin()
+
