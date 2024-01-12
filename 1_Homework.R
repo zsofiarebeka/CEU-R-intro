@@ -66,4 +66,5 @@ bookings_per_country[order(-bookings_per_country$bookings), ]
 # Converting the ratings to numeric values
 dt$ratings <- as.numeric(dt$ratings)
 
-
+dt[, weighted.mean(ratings, na.rm = TRUE), by = stars]
+dt
