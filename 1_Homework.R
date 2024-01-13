@@ -15,7 +15,7 @@ dt[country == "Austria"]
 # What is the rating of the most expensive hotel (based on the price per night)?
 dt[, avg_price_per_night, by = rating]
 
-# How many bookings are in 4-star hotels? !!!!!
+# How many bookings are in 4-star hotels?
 dt$four_stars <- dt$stars == 4.0 & !is.na(dt$stars)
 sum(dt$four_stars == "TRUE")
 
@@ -64,7 +64,7 @@ bookings_per_country[order(-bookings_per_country$bookings), ]
 # Eliminate NAs. Order by stars.
 
 # Filtering the data.table to drop NA values
-dt_filtered <- dt[complete.cases(dt[, c("rating", "rating_count")]), ]
+dt_filtered <- dt[complete.cases(dt[, c("rating", "rating_count", "stars")]), ]
 str(dt_filtered)
 
 # Computing the weighted average
@@ -76,3 +76,26 @@ weighted_mean_rating_per_stars <- weighted_mean_rating_per_stars[order(stars), ]
 weighted_mean_rating_per_stars
 
 # Plot this computed average rating per stars!
+# Make sure that each star category is printed on the X axis!
+ggplot(weighted_mean_rating_per_stars, aes(x = factor(stars), y = weighted_mean_rating)) +
+  geom_bar(stat = "identity", fill = "cadetblue3", width = 0.4) +
+  labs(title = "Weighted average of ratings by stars", x = "Stars", y = "Weighted mean of ratings") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Create a boxplot on ratings per stars! !!!
+ggplot(weighted_mean_rating_per_stars, aes(weighted_mean_rating, group = stars)) + geom_boxplot()
+
+# Create histograms on the nightly prices for each star category! !!!
+# Check out the arguments and disable forcing the same Y axis range for the subplots.
+
+# Drop NAs from 'nightly_prices' and 'stars'
+dt_filtered_prices <- dt[complete.cases(dt[, c("avg_price_per_night", "stars")]), ]
+
+ggplot(dt_filtered_prices, aes(x = avg_price_per_night)) +
+  geom_histogram(binwidth = 10, fill = "cadetblue3", width = 2) +
+  facet_wrap(~ stars) +
+  labs(title = "Histogram on nightly prices by stars", x = "Nightly prices", y = NULL) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
