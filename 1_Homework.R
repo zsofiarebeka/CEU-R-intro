@@ -63,8 +63,16 @@ bookings_per_country[order(-bookings_per_country$bookings), ]
 # Use the weighted.mean function to account for the number of ratings of the hotels, and experiment with the na.rm argument.
 # Eliminate NAs. Order by stars.
 
-# Converting the ratings to numeric values
-dt$ratings <- as.numeric(dt$ratings)
+# Filtering the data.table to drop NA values
+dt_filtered <- dt[complete.cases(dt[, c("rating", "rating_count")]), ]
+str(dt_filtered)
 
-dt[, weighted.mean(ratings, na.rm = TRUE), by = stars]
-dt
+# Computing the weighted average
+weighted_mean_rating_per_stars <- dt_filtered[, .(weighted_mean_rating = weighted.mean(rating, w = rating_count, na.rm = TRUE)), by = stars]
+weighted_mean_rating_per_stars
+
+# Ordering by stars
+weighted_mean_rating_per_stars <- weighted_mean_rating_per_stars[order(stars), ]
+weighted_mean_rating_per_stars
+
+# Plot this computed average rating per stars!
