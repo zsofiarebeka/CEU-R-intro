@@ -20,10 +20,8 @@ dt$four_stars <- dt$stars == 4.0 & !is.na(dt$stars)
 sum(dt$four_stars == "TRUE")
 
 # Which country has the highest number of 5-star hotels? !!!!!
-dt$five_stars <- dt$stars == 5.0 & !is.na(dt$stars)
 
-five_stars_per_country <- aggregate(five_stars ~ country, data = dt, sum)
-
+hotels[,sum(stars==5),by=country][order(by=-V1)][1,country]
 
 # Plot the number of bookings per country!
 bookings_per_country <- aggregate(bookings ~ country, data = dt, sum)
